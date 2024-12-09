@@ -12,17 +12,26 @@ driver=webdriver.Edge()
 driver.maximize_window()
 driver.get("https://www.google.com/")
 
-j = sheet.min_row + 1
-while j < sheet.max_row + 1:
-    searchKey = driver.find_element('name', "q")
-    searchKey.clear()
-    searchKey.send_keys(sheet.cell(row=j, column=3).value)
-    time.sleep(3)
-    suggestions = driver.find_elements('css selector', 'li.sbct')
-    longest_suggestion = max(suggestions, key=lambda suggestion: len(suggestion.text))
-    sheet.cell(row=j, column=4).value = longest_suggestion.text
-    sheet.cell(row=j, column=5).value = sheet.cell(row=j, column=3).value
-    j += 1
+i=1
+for row in sheet.iter_rows():
+    keywordRow=0
+    keywordCol=0
+    for col in row:
+        searchKey = driver.find_element('name', "q")
+        searchKey.clear()
+        keyword = f'Keyword{i}'
+
+        if col.value == keyword:
+            keywordRow=col.row
+            keywordCol=col.column
+            i+=1
+            searchKey.send_keys(sheet.cell(row=keywordRow, column=keywordCol+1).value)
+            time.sleep(3)
+            suggestions = driver.find_elements('css selector', 'li.sbct')
+            longest_suggestion = max(suggestions, key=lambda suggestion: len(suggestion.text))
+            sheet.cell(row=keywordRow, column=keywordCol+2).value = longest_suggestion.text
+            sheet.cell(row=keywordRow, column=keywordCol+3).value = sheet.cell(row=keywordRow, column=keywordCol+1).value
+            break
 
 file.save('Excel.xlsx')
 print('Completed')
